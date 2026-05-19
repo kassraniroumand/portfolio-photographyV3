@@ -1,10 +1,6 @@
-import { cache } from "react";
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
-import {
-  adminContentSchema,
-  type AdminContentFormValues,
-} from "./(dashboard)/admin/homepage/form/adminContentSchema";
+import { getHomePage } from "./_lib/homePageData";
+import type { AdminContentFormValues } from "./(dashboard)/admin/homepage/form/adminContentSchema";
 import { adminEmptyContent } from "./(dashboard)/admin/homepage/form/emptyContent";
 
 import Nav from "@/components/portfolio/Nav";
@@ -38,32 +34,6 @@ const ALLOWED_SCHEMA_TYPES = [
   "WebSite",
   "WebPage",
 ] as const;
-
-const SINGLETON_ID = "singleton";
-
-const getHomePage = cache(
-  async (): Promise<AdminContentFormValues | null> => {
-    try {
-      const record = await prisma.siteContent.findUnique({
-        where: { id: SINGLETON_ID },
-      });
-      if (!record?.data) return null;
-
-      const parsed = adminContentSchema.safeParse(record.data);
-      if (!parsed.success) {
-        console.warn(
-          "home-homepage payload failed validation",
-          parsed.error.issues,
-        );
-        return null;
-      }
-      return parsed.data;
-    } catch (err) {
-      console.error("getHomePage failed", err);
-      return null;
-    }
-  },
-);
 
 export async function generateMetadata(): Promise<Metadata> {
   const data = await getHomePage();
