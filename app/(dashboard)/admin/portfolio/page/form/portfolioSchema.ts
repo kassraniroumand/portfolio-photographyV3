@@ -12,6 +12,7 @@ const videoItemSchema = z.object({
     aspectRatio: z.number().positive().default(16 / 9),
     alt: z.string(),
     caption: z.string(),
+    thumbnail: z.string(),
 })
 
 const photoCollectionSchema = z.object({
@@ -27,6 +28,11 @@ const photoCollectionSchema = z.object({
     photos: z.array(photoItemSchema),
 })
 
+const infoItemSchema = z.object({
+    k: z.string(),
+    v: z.string(),
+})
+
 const videoCollectionSchema = z.object({
     slug: z
         .string()
@@ -36,6 +42,8 @@ const videoCollectionSchema = z.object({
     year: z.string(),
     location: z.string(),
     description: z.string(),
+    coverImage: z.string().default(""),
+    info: z.array(infoItemSchema).default([]),
     videos: z.array(videoItemSchema),
 })
 

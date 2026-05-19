@@ -6,6 +6,7 @@ import type { PortfolioFormReturn } from "@/app/(dashboard)/admin/portfolio/page
 import { TextField } from "../../../homepage/component/TextField"
 import { TextareaField } from "../../../homepage/component/TextareaField"
 import { VideoField } from "../../../homepage/component/VideoField"
+import { ImageField } from "../../../homepage/component/ImageField"
 import { PortfolioSectionSaveBar } from "@/app/(dashboard)/admin/portfolio/page/component/PortfolioSectionSaveBar"
 import { Button } from "@/components/ui/button"
 
@@ -39,6 +40,8 @@ const VideosTab = ({ form }: Props) => {
                             year: "",
                             location: "",
                             description: "",
+                            coverImage: "",
+                            info: [],
                             videos: [],
                         })
                     }
@@ -87,6 +90,15 @@ function VideoCollectionRow({
         name: `videoCollections.${index}.videos`,
     })
 
+    const {
+        fields: infoFields,
+        append: appendInfo,
+        remove: removeInfo,
+    } = useFieldArray({
+        control: form.control,
+        name: `videoCollections.${index}.info`,
+    })
+
     const base = `videoCollections.${index}` as const
 
     return (
@@ -123,6 +135,61 @@ function VideoCollectionRow({
                 label="Description"
             />
 
+            <ImageField
+                form={form}
+                name={`${base}.coverImage`}
+                label="Cover image"
+                description="Shown on the left of the collection header."
+            />
+
+            <div className="space-y-3 border-t pt-4">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium">Info (key / value)</h4>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => appendInfo({ k: "", v: "" })}
+                    >
+                        Add row
+                    </Button>
+                </div>
+
+                {infoFields.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                        No info rows yet.
+                    </p>
+                )}
+
+                {infoFields.map((row, r) => (
+                    <div
+                        key={row.id}
+                        className="grid gap-3 md:grid-cols-[1fr_2fr_auto] items-end"
+                    >
+                        <TextField
+                            form={form}
+                            name={`${base}.info.${r}.k`}
+                            label="Key"
+                            placeholder="Director"
+                        />
+                        <TextField
+                            form={form}
+                            name={`${base}.info.${r}.v`}
+                            label="Value"
+                            placeholder="Jane Doe"
+                        />
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeInfo(r)}
+                        >
+                            Remove
+                        </Button>
+                    </div>
+                ))}
+            </div>
+
             <div className="space-y-3 border-t pt-4">
                 <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium">Videos</h4>
@@ -136,6 +203,7 @@ function VideoCollectionRow({
                                 aspectRatio: 16 / 9,
                                 alt: "",
                                 caption: "",
+                                thumbnail: "",
                             })
                         }
                     >
@@ -179,6 +247,12 @@ function VideoCollectionRow({
                                     { shouldDirty: true, shouldValidate: true },
                                 )
                             }
+                        />
+                        <ImageField
+                            form={form}
+                            name={`${base}.videos.${k}.thumbnail`}
+                            label="Thumbnail"
+                            description="Poster image shown before the video plays."
                         />
                         <div className="grid gap-3 md:grid-cols-2">
                             <TextField
