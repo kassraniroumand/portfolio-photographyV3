@@ -11,6 +11,8 @@ import {
   EmptyCollectionsSection,
 } from "../_components/CollectionsSection";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const data = await getPortfolio();
   return buildPortfolioMetadata(data, "Photos", "/portfolio/images");
