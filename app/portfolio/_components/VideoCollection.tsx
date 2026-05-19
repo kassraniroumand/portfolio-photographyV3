@@ -42,6 +42,7 @@ export function VideoCollection({
                 <video
                   src={video.src}
                   controls
+                  playsInline
                   preload="metadata"
                   aria-label={video.alt || collection.title}
                   className="h-full w-full object-cover"
