@@ -35,7 +35,7 @@ const PortfolioForm = () => {
     useEffect(() => {
         if (record?.data) {
             const loaded = record.data as Partial<PortfolioFormValues>
-            const loadedSeo = loaded.seo ?? {}
+            const loadedSeo: Partial<PortfolioFormValues["seo"]> = loaded.seo ?? {}
             form.reset({
                 ...emptyPortfolio,
                 ...loaded,

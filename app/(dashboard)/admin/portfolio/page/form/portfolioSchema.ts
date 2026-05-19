@@ -1,3 +1,4 @@
+import type { UseFormReturn } from "react-hook-form"
 import { z } from "zod"
 
 const photoItemSchema = z.object({
@@ -76,3 +77,8 @@ export const portfolioSchema = z.object({
 
 export type PortfolioFormInput = z.input<typeof portfolioSchema>
 export type PortfolioFormValues = z.output<typeof portfolioSchema>
+export type PortfolioFormReturn = UseFormReturn<
+    PortfolioFormInput,
+    unknown,
+    PortfolioFormValues
+>

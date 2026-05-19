@@ -1,8 +1,8 @@
 "use client"
 
 import React from "react"
-import { useFieldArray, type UseFormReturn } from "react-hook-form"
-import type { PortfolioFormValues } from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema"
+import { useFieldArray } from "react-hook-form"
+import type { PortfolioFormReturn } from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema"
 import { TextField } from "../../../homepage/component/TextField"
 import { TextareaField } from "../../../homepage/component/TextareaField"
 import { VideoField } from "../../../homepage/component/VideoField"
@@ -10,7 +10,7 @@ import { PortfolioSectionSaveBar } from "@/app/(dashboard)/admin/portfolio/page/
 import { Button } from "@/components/ui/button"
 
 type Props = {
-    form: UseFormReturn<PortfolioFormValues>
+    form: PortfolioFormReturn
 }
 
 const VideosTab = ({ form }: Props) => {
@@ -75,7 +75,7 @@ function VideoCollectionRow({
     onRemove,
 }: {
     index: number
-    form: UseFormReturn<PortfolioFormValues>
+    form: PortfolioFormReturn
     onRemove: () => void
 }) {
     const {

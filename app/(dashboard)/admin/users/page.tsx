@@ -59,7 +59,7 @@ export default function UsersPage() {
         </p>
       </header>
 
-      <Card size="sm">
+      <Card>
         <CardHeader>
           <CardTitle>Add user</CardTitle>
           <CardDescription>
@@ -108,7 +108,7 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      <Card size="sm">
+      <Card>
         {users.length === 0 ? (
           <CardContent>
             <p className="text-sm text-muted-foreground">No users yet.</p>

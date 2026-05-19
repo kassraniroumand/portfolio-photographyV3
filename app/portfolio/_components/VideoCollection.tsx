@@ -36,7 +36,7 @@ export function VideoCollection({
               className="flex flex-col gap-4"
             >
               <figure
-                className="relative overflow-hidden bg-[hsl(0_0%_4%)] shadow-cinematic ring-1 ring-foreground/5"
+                className="relative mx-auto w-auto max-h-svh overflow-hidden bg-[hsl(0_0%_4%)] shadow-cinematic ring-1 ring-foreground/5"
                 style={{ aspectRatio: video.aspectRatio || 16 / 9 }}
               >
                 <video

@@ -1,14 +1,13 @@
 "use client"
 
 import React from "react"
-import type { UseFormReturn } from "react-hook-form"
-import type { PortfolioFormValues } from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema"
+import type { PortfolioFormReturn } from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema"
 import { TextField } from "../../../homepage/component/TextField"
 import { TextareaField } from "../../../homepage/component/TextareaField"
 import { PortfolioSectionSaveBar } from "@/app/(dashboard)/admin/portfolio/page/component/PortfolioSectionSaveBar"
 
 type Props = {
-    form: UseFormReturn<PortfolioFormValues>
+    form: PortfolioFormReturn
 }
 
 const IntroTab = ({ form }: Props) => {

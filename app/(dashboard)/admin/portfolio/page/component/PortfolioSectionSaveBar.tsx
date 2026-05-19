@@ -1,15 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import type { UseFormReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { useSavePortfolioSectionMutation } from "@/lib/store/api"
-import type { PortfolioFormValues } from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema"
+import type {
+    PortfolioFormReturn,
+    PortfolioFormValues,
+} from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema"
 
 type Section = keyof PortfolioFormValues
 
 type Props = {
-    form: UseFormReturn<PortfolioFormValues>
+    form: PortfolioFormReturn
     section: Section
     label: string
 }

@@ -195,7 +195,7 @@ export default async function Home() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      {/*<Nav />*/}
+      <Nav />
       <Hero hero={content.hero} />
       <Marquee />
       <Gallery gallery={content.gallery} />

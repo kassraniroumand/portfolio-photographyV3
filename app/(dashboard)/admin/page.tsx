@@ -27,7 +27,7 @@ export default function AdminPage() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <Card size="sm">
+        <Card>
           <CardHeader>
             <CardDescription>Users</CardDescription>
             <CardTitle className="text-2xl">
@@ -35,13 +35,13 @@ export default function AdminPage() {
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card size="sm">
+        <Card>
           <CardHeader>
             <CardDescription>Sessions</CardDescription>
             <CardTitle className="text-2xl">—</CardTitle>
           </CardHeader>
         </Card>
-        <Card size="sm">
+        <Card>
           <CardHeader>
             <CardDescription>Todos</CardDescription>
             <CardTitle className="text-2xl">—</CardTitle>

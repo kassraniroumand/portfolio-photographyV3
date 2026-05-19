@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Nav from "@/components/portfolio/Nav";
 import { getPortfolio } from "./_lib/portfolioData";
 import { PortfolioTabs } from "./_components/PortfolioTabs";
 
@@ -12,6 +13,7 @@ export default async function PortfolioLayout({
 
   return (
     <main className="relative min-h-screen bg-background text-foreground grain overflow-hidden">
+      <Nav />
       {data ? (
         <div className="px-6 lg:px-12 py-16 lg:py-24">
           <section className="pb-6 sm:pb-24">
