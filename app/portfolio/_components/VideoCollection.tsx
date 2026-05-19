@@ -108,7 +108,7 @@ export function VideoCollection({
                       </span>
                     </div>
                     {video.caption && (
-                      <figcaption className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      <figcaption className="text-center text-xs uppercase tracking-[0.3em] text-muted-foreground">
                         {video.caption}
                       </figcaption>
                     )}
