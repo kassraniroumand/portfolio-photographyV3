@@ -19,15 +19,11 @@ const Contact = ({ contact }: { contact: AdminContentFormValues["contact"] }) =>
                 {contact.email}
               </a>
             </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">Studio</p>
-              <p>{contact.studioLine1}<br />{contact.studioLine2}</p>
-            </div>
+
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">Elsewhere</p>
               <div className="flex flex-col gap-1">
                 <a href={contact.instagramUrl} className="hover:text-accent transition-colors duration-300">Instagram</a>
-                <a href={contact.arenaUrl} className="hover:text-accent transition-colors duration-300">Are.na</a>
               </div>
             </div>
           </div>
@@ -42,10 +38,7 @@ const Contact = ({ contact }: { contact: AdminContentFormValues["contact"] }) =>
         </div>
       </div>
 
-      <footer className="container mx-auto px-6 lg:px-12 mt-24 pt-8 border-t border-border flex flex-wrap items-center justify-between text-[10px] uppercase tracking-[0.3em] text-muted-foreground gap-4">
-        <span>{contact.footerLeft}</span>
-        <span>{contact.footerRight}</span>
-      </footer>
+
     </section>
   );
 };
