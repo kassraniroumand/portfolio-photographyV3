@@ -70,9 +70,6 @@ const PortfolioForm = () => {
             </div>
 
             <Form {...form}>
-                <pre className="max-h-80 overflow-auto rounded-md border bg-muted p-3 text-xs">
-                    {JSON.stringify(watchedValues, null, 2)}
-                </pre>
 
                 <Tabs defaultValue="intro" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
