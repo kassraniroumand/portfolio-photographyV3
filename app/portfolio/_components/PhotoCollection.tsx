@@ -40,7 +40,7 @@ export function PhotoCollection({
                   fill
                   priority={index === 0 && i === 0}
                   sizes="(min-width: 768px) 50vw, 100vw"
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
             ) : null,

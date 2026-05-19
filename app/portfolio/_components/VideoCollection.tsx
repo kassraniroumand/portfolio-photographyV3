@@ -39,14 +39,14 @@ export function VideoCollection({
       {(hasCover || hasInfo) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {hasCover ? (
-            <div className="relative w-full aspect-square overflow-hidden bg-secondary">
+            <div className="relative w-full aspect-square overflow-hidden">
               <Image
                 src={collection.coverImage}
                 alt={`${collection.title} cover`}
                 fill
                 priority={index === 0}
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           ) : (

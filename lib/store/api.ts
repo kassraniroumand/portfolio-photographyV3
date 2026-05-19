@@ -72,11 +72,14 @@ export const api = createApi({
             ]
           : [{ type: "Image" as const, id: "LIST" }],
     }),
-    uploadImage: build.mutation<Image, FormData>({
-      query: (formData) => ({
-        url: "/admin/images",
+    finalizeImage: build.mutation<
+      Image,
+      { url: string; width: number; height: number }
+    >({
+      query: (body) => ({
+        url: "/admin/images/finalize",
         method: "POST",
-        body: formData,
+        body,
       }),
       invalidatesTags: [{ type: "Image", id: "LIST" }],
     }),
@@ -171,7 +174,7 @@ export const {
   useCreateUserMutation,
   useSetUserRoleMutation,
   useListImagesQuery,
-  useUploadImageMutation,
+  useFinalizeImageMutation,
   useDeleteImageMutation,
   useListVideosQuery,
   useInvalidateVideosMutation,

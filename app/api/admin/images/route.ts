@@ -1,20 +1,14 @@
-import { put } from "@vercel/blob";
-import { imageSize } from "image-size";
-import sharp from "sharp";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 
-async function generateBlurDataURL(buffer: Buffer): Promise<string | null> {
-  try {
-    const lqip = await sharp(buffer)
-      .resize(12, 12, { fit: "inside" })
-      .jpeg({ quality: 40 })
-      .toBuffer();
-    return `data:image/jpeg;base64,${lqip.toString("base64")}`;
-  } catch {
-    return null;
-  }
-}
+const ALLOWED_CONTENT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+];
 
 export async function GET() {
   const gate = await requireAdmin();
@@ -27,45 +21,30 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
-  if (!gate.ok) return new Response(null, { status: gate.status });
+  const body = (await request.json()) as HandleUploadBody;
 
-  const form = await request.formData();
-  const file = form.get("file");
+  try {
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async () => {
+        const gate = await requireAdmin();
+        if (!gate.ok) throw new Error("Unauthorized");
 
-  if (!(file instanceof File)) {
-    return Response.json({ error: "file is required" }, { status: 400 });
+        return {
+          allowedContentTypes: ALLOWED_CONTENT_TYPES,
+          addRandomSuffix: true,
+        };
+      },
+      onUploadCompleted: async () => {
+        // DB row is created by the client via /api/admin/images/finalize
+        // once it has measured the image dimensions.
+      },
+    });
+
+    return Response.json(jsonResponse);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "upload failed";
+    return Response.json({ error: message }, { status: 400 });
   }
-  if (!file.type.startsWith("image/")) {
-    return Response.json({ error: "file must be an image" }, { status: 400 });
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const dims = imageSize(buffer);
-  if (!dims.width || !dims.height) {
-    return Response.json(
-      { error: "could not read image dimensions" },
-      { status: 400 },
-    );
-  }
-
-  const [blob, blurDataURL] = await Promise.all([
-    put(file.name, buffer, {
-      access: "public",
-      addRandomSuffix: true,
-      contentType: file.type,
-    }),
-    generateBlurDataURL(buffer),
-  ]);
-
-  const image = await prisma.images.create({
-    data: {
-      url: blob.url,
-      width: dims.width,
-      height: dims.height,
-      blurDataURL,
-    },
-  });
-
-  return Response.json(image, { status: 201 });
 }

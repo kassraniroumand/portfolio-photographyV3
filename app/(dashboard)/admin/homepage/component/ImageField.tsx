@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import type { FieldValues } from "react-hook-form"
 import NextImage from "next/image"
 import { useDropzone } from "react-dropzone"
+import { upload } from "@vercel/blob/client"
 
 import { getNestedError } from "../component/PropsُType"
 import {
@@ -16,9 +17,24 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
     useListImagesQuery,
-    useUploadImageMutation,
+    useFinalizeImageMutation,
 } from "@/lib/store/api"
 import type { TextInputFieldProps } from "../component/PropsُType"
+
+async function readImageDimensions(file: File) {
+    const url = URL.createObjectURL(file)
+    try {
+        const img = new Image()
+        await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve()
+            img.onerror = () => reject(new Error("could not read image dimensions"))
+            img.src = url
+        })
+        return { width: img.naturalWidth, height: img.naturalHeight }
+    } finally {
+        URL.revokeObjectURL(url)
+    }
+}
 
 export function ImageField<T extends FieldValues>({
     form,
@@ -100,7 +116,9 @@ type ImagePickerModalProps = {
 
 function ImagePickerModal({ onClose, onSelect }: ImagePickerModalProps) {
     const { data: images = [], isLoading } = useListImagesQuery()
-    const [uploadImage, { isLoading: uploading }] = useUploadImageMutation()
+    const [finalizeImage] = useFinalizeImageMutation()
+    const [uploading, setUploading] = useState(false)
+    const [progress, setProgress] = useState(0)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
@@ -115,17 +133,26 @@ function ImagePickerModal({ onClose, onSelect }: ImagePickerModalProps) {
         async (accepted: File[]) => {
             if (accepted.length === 0) return
             setError(null)
+            setUploading(true)
             try {
                 for (const file of accepted) {
-                    const fd = new FormData()
-                    fd.append("file", file)
-                    await uploadImage(fd).unwrap()
+                    const { width, height } = await readImageDimensions(file)
+                    const blob = await upload(file.name, file, {
+                        access: "public",
+                        handleUploadUrl: "/api/admin/images",
+                        contentType: file.type,
+                        onUploadProgress: (e) => setProgress(e.percentage),
+                    })
+                    await finalizeImage({ url: blob.url, width, height }).unwrap()
                 }
             } catch (e) {
                 setError(e instanceof Error ? e.message : "upload failed")
+            } finally {
+                setUploading(false)
+                setProgress(0)
             }
         },
-        [uploadImage],
+        [finalizeImage],
     )
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -174,7 +201,9 @@ function ImagePickerModal({ onClose, onSelect }: ImagePickerModalProps) {
                     >
                         <input {...getInputProps()} />
                         {uploading ? (
-                            <p className="text-muted-foreground">Uploading…</p>
+                            <p className="text-muted-foreground">
+                                Uploading… {progress > 0 ? `${progress.toFixed(0)}%` : ""}
+                            </p>
                         ) : isDragActive ? (
                             <p className="text-foreground">Drop the images here</p>
                         ) : (

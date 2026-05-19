@@ -3,19 +3,37 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { upload } from "@vercel/blob/client";
 import {
   useDeleteImageMutation,
+  useFinalizeImageMutation,
   useListImagesQuery,
-  useUploadImageMutation,
 } from "@/lib/store/api";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { openImage } from "@/lib/store/slices/image-modal-slice";
 
+async function readImageDimensions(file: File) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new window.Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("could not read image dimensions"));
+      img.src = url;
+    });
+    return { width: img.naturalWidth, height: img.naturalHeight };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export default function ImagesPage() {
   const { data: images = [], isLoading } = useListImagesQuery();
-  const [uploadImage, { isLoading: uploading }] = useUploadImageMutation();
+  const [finalizeImage] = useFinalizeImageMutation();
   const [deleteImage] = useDeleteImageMutation();
   const dispatch = useAppDispatch();
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -23,17 +41,26 @@ export default function ImagesPage() {
     async (accepted: File[]) => {
       if (accepted.length === 0) return;
       setError(null);
+      setUploading(true);
       try {
         for (const file of accepted) {
-          const fd = new FormData();
-          fd.append("file", file);
-          await uploadImage(fd).unwrap();
+          const { width, height } = await readImageDimensions(file);
+          const blob = await upload(file.name, file, {
+            access: "public",
+            handleUploadUrl: "/api/admin/images",
+            contentType: file.type,
+            onUploadProgress: (e) => setProgress(e.percentage),
+          });
+          await finalizeImage({ url: blob.url, width, height }).unwrap();
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : "upload failed");
+      } finally {
+        setUploading(false);
+        setProgress(0);
       }
     },
-    [uploadImage],
+    [finalizeImage],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -84,7 +111,9 @@ export default function ImagesPage() {
       >
         <input {...getInputProps()} />
         {uploading ? (
-          <p className="text-muted-foreground">Uploading…</p>
+          <p className="text-muted-foreground">
+            Uploading… {progress > 0 ? `${progress.toFixed(0)}%` : ""}
+          </p>
         ) : isDragActive ? (
           <p className="text-foreground">Drop the images here</p>
         ) : (
