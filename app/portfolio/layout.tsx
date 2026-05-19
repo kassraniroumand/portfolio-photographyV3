@@ -5,7 +5,6 @@ import About from "@/components/portfolio/About";
 import Contact from "@/components/portfolio/Contact";
 import { getPortfolio } from "./_lib/portfolioData";
 import { getHomePage } from "../_lib/homePageData";
-import { adminEmptyContent } from "../(dashboard)/admin/homepage/form/emptyContent";
 import { PortfolioTabs } from "./_components/PortfolioTabs";
 
 export default async function PortfolioLayout({
@@ -13,8 +12,7 @@ export default async function PortfolioLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [data, homeData] = await Promise.all([getPortfolio(), getHomePage()]);
-  const home = homeData ?? adminEmptyContent;
+  const [data, home] = await Promise.all([getPortfolio(), getHomePage()]);
 
   return (
     <main className="relative min-h-screen bg-background text-foreground grain overflow-hidden">

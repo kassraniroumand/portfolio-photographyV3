@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getHomePage } from "./_lib/homePageData";
 import type { AdminContentFormValues } from "./(dashboard)/admin/homepage/form/adminContentSchema";
-import { adminEmptyContent } from "./(dashboard)/admin/homepage/form/emptyContent";
 
 import Nav from "@/components/portfolio/Nav";
 import Hero from "@/components/portfolio/Hero";
@@ -37,13 +36,6 @@ const ALLOWED_SCHEMA_TYPES = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const data = await getHomePage();
-
-  if (!data) {
-    return {
-      title: "Photography Portfolio",
-      description: "Photography portfolio site.",
-    };
-  }
 
   const title = data.seo.title || undefined;
   const description = data.seo.description || undefined;
@@ -154,18 +146,15 @@ function buildJsonLd(data: AdminContentFormValues) {
 }
 
 export default async function Home() {
-  const data = await getHomePage();
-  const content = data ?? adminEmptyContent;
-  const jsonLd = data ? buildJsonLd(data) : null;
+  const content = await getHomePage();
+  const jsonLd = buildJsonLd(content);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Nav />
       <Hero hero={content.hero} />
       <Marquee />
