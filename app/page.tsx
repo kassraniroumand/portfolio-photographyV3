@@ -1,154 +1,209 @@
-"use client";
+import { cache } from "react";
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import {
+  adminContentSchema,
+  type AdminContentFormValues,
+} from "./(dashboard)/admin/homepage/form/adminContentSchema";
+import { adminEmptyContent } from "./(dashboard)/admin/homepage/form/emptyContent";
 
-import { useEffect, useState } from "react";
-import type { TodoModel as Todo } from "@/lib/generated/prisma/models";
+import Nav from "@/components/portfolio/Nav";
+import Hero from "@/components/portfolio/Hero";
+import Marquee from "@/components/portfolio/Marquee";
+import Gallery from "@/components/portfolio/Gallery";
+import BehindTheLens from "@/components/portfolio/BehindTheLens";
+import Stories from "@/components/portfolio/Stories";
+import Services from "@/components/portfolio/Services";
+import About from "@/components/portfolio/About";
+import Contact from "@/components/portfolio/Contact";
 
-export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [title, setTitle] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const ALLOWED_OG_TYPES = ["website", "article", "book", "profile"] as const;
+type OgType = (typeof ALLOWED_OG_TYPES)[number];
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/todos")
-      .then((r) => r.json())
-      .then((data: Todo[]) => {
-        if (active) setTodos(data);
-      })
-      .catch(() => {
-        if (active) setError("failed to load todos");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
+const ALLOWED_TWITTER_CARDS = [
+  "summary",
+  "summary_large_image",
+  "app",
+  "player",
+] as const;
+type TwitterCard = (typeof ALLOWED_TWITTER_CARDS)[number];
+
+const ALLOWED_SCHEMA_TYPES = [
+  "Person",
+  "Organization",
+  "LocalBusiness",
+  "ProfessionalService",
+  "Photograph",
+  "ImageGallery",
+  "WebSite",
+  "WebPage",
+] as const;
+
+const getHomePage = cache(
+  async (): Promise<AdminContentFormValues | null> => {
+    const h = await headers();
+    const host = h.get("host") ?? "localhost:3000";
+    const protocol = h.get("x-forwarded-proto") ?? "http";
+
+    const res = await fetch(`${protocol}://${host}/api/home-page`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+
+    const json = (await res.json().catch(() => null)) as
+      | { data?: unknown }
+      | null;
+    if (!json?.data) return null;
+
+    const parsed = adminContentSchema.safeParse(json.data);
+    if (!parsed.success) {
+      console.warn("home-homepage payload failed validation", parsed.error.issues);
+      return null;
+    }
+    return parsed.data;
+  },
+);
+
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await getHomePage();
+
+  if (!data) {
+    return {
+      title: "Photography Portfolio",
+      description: "Photography portfolio site.",
     };
-  }, []);
-
-  async function handleCreate(e: { preventDefault: () => void }) {
-    e.preventDefault();
-    const trimmed = title.trim();
-    if (!trimmed) return;
-
-    setSubmitting(true);
-    setError(null);
-    const res = await fetch("/api/todos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: trimmed }),
-    }).catch(() => null);
-
-    if (!res?.ok) {
-      setError("failed to create todo");
-    } else {
-      const created: Todo = await res.json();
-      setTodos((prev) => [created, ...prev]);
-      setTitle("");
-    }
-    setSubmitting(false);
   }
 
-  async function handleToggle(todo: Todo) {
-    const next = !todo.completed;
-    setTodos((prev) =>
-      prev.map((t) => (t.id === todo.id ? { ...t, completed: next } : t)),
-    );
-    const res = await fetch(`/api/todos/${todo.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completed: next }),
-    }).catch(() => null);
+  const title = data.seo.title || undefined;
+  const description = data.seo.description || undefined;
+  const keywords = data.seo.keywords.length ? data.seo.keywords : undefined;
+  const canonical = data.seo.canonicalPath || "/";
 
-    if (!res?.ok) {
-      setTodos((prev) =>
-        prev.map((t) => (t.id === todo.id ? { ...t, completed: !next } : t)),
-      );
-      setError("failed to update todo");
-    }
-  }
+  const ogTitle = data.seo.openGraph.title || title;
+  const ogDescription = data.seo.openGraph.description || description;
+  const ogImage = data.seo.openGraph.image || undefined;
+  const ogImageAlt = data.seo.openGraph.imageAlt || undefined;
+  const ogSiteName = data.seo.openGraph.siteName || undefined;
+  const ogLocale = data.seo.openGraph.locale || "en_US";
+  const ogType: OgType = (ALLOWED_OG_TYPES as readonly string[]).includes(
+    data.seo.openGraph.type,
+  )
+    ? (data.seo.openGraph.type as OgType)
+    : "website";
 
-  async function handleDelete(id: string) {
-    const snapshot = todos;
-    setTodos((prev) => prev.filter((t) => t.id !== id));
-    const res = await fetch(`/api/todos/${id}`, { method: "DELETE" }).catch(
-      () => null,
-    );
-    if (!res?.ok) {
-      setTodos(snapshot);
-      setError("failed to delete todo");
-    }
-  }
+  const twitterCard: TwitterCard = (
+    ALLOWED_TWITTER_CARDS as readonly string[]
+  ).includes(data.seo.twitter.card)
+    ? (data.seo.twitter.card as TwitterCard)
+    : "summary_large_image";
+  const twitterTitle = data.seo.twitter.title || ogTitle;
+  const twitterDescription = data.seo.twitter.description || ogDescription;
+  const twitterImage = data.seo.twitter.image || ogImage;
+
+  return {
+    title,
+    description,
+    keywords,
+    alternates: { canonical },
+    openGraph: {
+      type: ogType,
+      title: ogTitle,
+      description: ogDescription,
+      siteName: ogSiteName,
+      locale: ogLocale,
+      images: ogImage ? [{ url: ogImage, alt: ogImageAlt }] : undefined,
+    },
+    twitter: {
+      card: twitterCard,
+      title: twitterTitle,
+      description: twitterDescription,
+      images: twitterImage ? [twitterImage] : undefined,
+    },
+    robots: {
+      index: data.seo.robotsIndex,
+      follow: data.seo.robotsFollow,
+    },
+  };
+}
+
+function buildJsonLd(data: AdminContentFormValues) {
+  const rawType = data.seo.schemaType;
+  const type = (ALLOWED_SCHEMA_TYPES as readonly string[]).includes(rawType)
+    ? rawType
+    : "Person";
+
+  const sameAs = [data.contact.instagramUrl, data.contact.arenaUrl].filter(
+    Boolean,
+  );
+  const image =
+    data.seo.openGraph.image ||
+    data.hero.rightImage ||
+    data.hero.leftImage ||
+    undefined;
+  const url = data.seo.canonicalPath || "/";
+  const siteName = data.seo.openGraph.siteName || data.hero.cardName;
+
+  const author = {
+    "@type": "Person",
+    name: data.hero.cardName,
+    url,
+    image,
+    sameAs: sameAs.length ? sameAs : undefined,
+  };
+
+  const publisher = {
+    "@type": "Organization",
+    name: siteName,
+    url,
+    logo: image
+      ? { "@type": "ImageObject", url: image }
+      : undefined,
+  };
+
+  return {
+    "@context": "https://schema.org",
+    "@type": type,
+    name: siteName,
+    description: data.seo.description || undefined,
+    url,
+    image,
+    email: data.contact.email || undefined,
+    address:
+      data.contact.studioLine1 || data.contact.studioLine2
+        ? {
+            "@type": "PostalAddress",
+            streetAddress: data.contact.studioLine1 || undefined,
+            addressLocality: data.contact.studioLine2 || undefined,
+          }
+        : undefined,
+    sameAs: sameAs.length ? sameAs : undefined,
+    author,
+    publisher,
+  };
+}
+
+export default async function Home() {
+  const data = await getHomePage();
+  const content = data ?? adminEmptyContent;
+  const jsonLd = data ? buildJsonLd(data) : null;
 
   return (
-    <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-2xl flex-col gap-6 py-16 px-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Todos
-        </h1>
-
-        <form onSubmit={handleCreate} className="flex gap-2">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="What needs doing?"
-            className="flex-1 h-11 rounded-md border border-zinc-200 bg-white px-3 text-sm text-black outline-none focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50"
-            disabled={submitting}
-          />
-          <button
-            type="submit"
-            disabled={submitting || !title.trim()}
-            className="h-11 rounded-md bg-black px-4 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-          >
-            Add
-          </button>
-        </form>
-
-        {error && (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        )}
-
-        {loading ? (
-          <p className="text-sm text-zinc-500">Loading…</p>
-        ) : todos.length === 0 ? (
-          <p className="text-sm text-zinc-500">No todos yet.</p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
-            {todos.map((todo) => (
-              <li
-                key={todo.id}
-                className="flex items-center gap-3 px-3 py-2.5"
-              >
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={() => handleToggle(todo)}
-                  className="h-4 w-4"
-                />
-                <span
-                  className={`flex-1 text-sm ${
-                    todo.completed
-                      ? "text-zinc-400 line-through dark:text-zinc-500"
-                      : "text-black dark:text-zinc-50"
-                  }`}
-                >
-                  {todo.title}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(todo.id)}
-                  className="text-xs text-zinc-500 hover:text-red-600 dark:hover:text-red-400"
-                >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
-    </div>
+    <main className="min-h-screen bg-background text-foreground">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      {/*<Nav />*/}
+      <Hero hero={content.hero} />
+      <Marquee />
+      <Gallery gallery={content.gallery} />
+      <BehindTheLens lens={content.lens} />
+      <Stories stories={content.stories} />
+      <Services services={content.services} />
+      <About about={content.about} />
+      <Contact contact={content.contact} />
+    </main>
   );
 }
