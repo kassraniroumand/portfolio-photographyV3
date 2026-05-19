@@ -123,11 +123,6 @@ export function VideoCollection({
               </>
             )}
           </Carousel>
-          {collection.videos.length > 1 && (
-            <p className="text-center text-[10px] uppercase tracking-[0.35em] text-muted-foreground">
-              Drag or swipe · {collection.videos.length} videos
-            </p>
-          )}
         </div>
       )}
     </article>

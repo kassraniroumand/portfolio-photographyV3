@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/sheet";
 
 const links = [
-  { href: "/portfolio/images", label: "Portfolio Images" },
-  { href: "/portfolio/videos", label: "Portfolio Videos" },
+  { href: "/portfolio/images", label: "Images Portfolio" },
+  { href: "/portfolio/videos", label: "Ai Portfolio" },
 ];
 
 const Nav = () => {

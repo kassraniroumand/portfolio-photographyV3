@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/portfolio/images", label: "Photos" },
-  { href: "/portfolio/videos", label: "Videos" },
+  { href: "/portfolio/videos", label: "Ai" },
 ] as const;
 
 export function PortfolioTabs() {
