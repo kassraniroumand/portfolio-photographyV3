@@ -1,6 +1,6 @@
 import { cache } from "react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 import {
   adminContentSchema,
   type AdminContentFormValues,
@@ -39,28 +39,29 @@ const ALLOWED_SCHEMA_TYPES = [
   "WebPage",
 ] as const;
 
+const SINGLETON_ID = "singleton";
+
 const getHomePage = cache(
   async (): Promise<AdminContentFormValues | null> => {
-    const h = await headers();
-    const host = h.get("host") ?? "localhost:3000";
-    const protocol = h.get("x-forwarded-proto") ?? "http";
+    try {
+      const record = await prisma.siteContent.findUnique({
+        where: { id: SINGLETON_ID },
+      });
+      if (!record?.data) return null;
 
-    const res = await fetch(`${protocol}://${host}/api/home-page`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-
-    const json = (await res.json().catch(() => null)) as
-      | { data?: unknown }
-      | null;
-    if (!json?.data) return null;
-
-    const parsed = adminContentSchema.safeParse(json.data);
-    if (!parsed.success) {
-      console.warn("home-homepage payload failed validation", parsed.error.issues);
+      const parsed = adminContentSchema.safeParse(record.data);
+      if (!parsed.success) {
+        console.warn(
+          "home-homepage payload failed validation",
+          parsed.error.issues,
+        );
+        return null;
+      }
+      return parsed.data;
+    } catch (err) {
+      console.error("getHomePage failed", err);
       return null;
     }
-    return parsed.data;
   },
 );
 

@@ -1,11 +1,27 @@
 import { cache } from "react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 import {
   portfolioSchema,
   type PortfolioFormValues,
 } from "@/app/(dashboard)/admin/portfolio/page/form/portfolioSchema";
 import { emptyPortfolio } from "@/app/(dashboard)/admin/portfolio/page/form/emptyPortfolio";
+
+const PORTFOLIO_ID = "portfolio";
+
+const getPortfolioRecord = cache(async (): Promise<Record<string, unknown> | null> => {
+  try {
+    const record = await prisma.siteContent.findUnique({
+      where: { id: PORTFOLIO_ID },
+    });
+    const data = record?.data;
+    if (!data || typeof data !== "object") return null;
+    return data as Record<string, unknown>;
+  } catch (err) {
+    console.error("getPortfolioRecord failed", err);
+    return null;
+  }
+});
 
 const ALLOWED_OG_TYPES = ["website", "article", "book", "profile"] as const;
 type OgType = (typeof ALLOWED_OG_TYPES)[number];
@@ -35,13 +51,6 @@ const videoCollectionsSchema = portfolioSchema.shape.videoCollections;
 export type PortfolioPhotoCollections = PortfolioFormValues["photoCollections"];
 export type PortfolioVideoCollections = PortfolioFormValues["videoCollections"];
 
-async function originHeaders() {
-  const h = await headers();
-  const host = h.get("host") ?? "localhost:3000";
-  const protocol = h.get("x-forwarded-proto") ?? "http";
-  return { host, protocol };
-}
-
 function migratePhotoCollections(value: unknown): unknown {
   if (!Array.isArray(value)) return value;
   return value.map((c) => {
@@ -60,22 +69,10 @@ function migratePhotoCollections(value: unknown): unknown {
 
 export const getPortfolio = cache(
   async (): Promise<PortfolioFormValues | null> => {
-    const { host, protocol } = await originHeaders();
+    const data = await getPortfolioRecord();
+    if (!data) return null;
 
-    const res = await fetch(`${protocol}://${host}/api/portfolio`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-
-    const json = (await res.json().catch(() => null)) as {
-      data?: unknown;
-    } | null;
-    if (!json?.data || typeof json.data !== "object") return null;
-
-    const raw = {
-      ...emptyPortfolio,
-      ...(json.data as Record<string, unknown>),
-    } as Record<string, unknown>;
+    const raw = { ...emptyPortfolio, ...data } as Record<string, unknown>;
     const merged = {
       ...raw,
       photoCollections: migratePhotoCollections(raw.photoCollections),
@@ -91,20 +88,11 @@ export const getPortfolio = cache(
 
 export const getPortfolioImages = cache(
   async (): Promise<PortfolioPhotoCollections | null> => {
-    const { host, protocol } = await originHeaders();
-
-    const res = await fetch(`${protocol}://${host}/api/portfolio/images`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-
-    const json = (await res.json().catch(() => null)) as {
-      data?: unknown;
-    } | null;
-    if (!json?.data) return null;
+    const data = await getPortfolioRecord();
+    if (!data) return null;
 
     const parsed = photoCollectionsSchema.safeParse(
-      migratePhotoCollections(json.data),
+      migratePhotoCollections(data.photoCollections),
     );
     if (!parsed.success) {
       console.warn(
@@ -119,19 +107,10 @@ export const getPortfolioImages = cache(
 
 export const getPortfolioVideos = cache(
   async (): Promise<PortfolioVideoCollections | null> => {
-    const { host, protocol } = await originHeaders();
+    const data = await getPortfolioRecord();
+    if (!data) return null;
 
-    const res = await fetch(`${protocol}://${host}/api/portfolio/videos`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-
-    const json = (await res.json().catch(() => null)) as {
-      data?: unknown;
-    } | null;
-    if (!json?.data) return null;
-
-    const parsed = videoCollectionsSchema.safeParse(json.data);
+    const parsed = videoCollectionsSchema.safeParse(data.videoCollections);
     if (!parsed.success) {
       console.warn(
         "portfolio videos payload failed validation",
