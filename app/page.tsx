@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getHomePage } from "./_lib/homePageData";
 import type { AdminContentFormValues } from "./(dashboard)/admin/homepage/form/adminContentSchema";
 
+export const dynamic = "force-dynamic";
+
 import Nav from "@/components/portfolio/Nav";
 import Hero from "@/components/portfolio/Hero";
 import Marquee from "@/components/portfolio/Marquee";
