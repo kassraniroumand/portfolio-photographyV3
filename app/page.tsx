@@ -5,6 +5,7 @@ import type { AdminContentFormValues } from "./(dashboard)/admin/homepage/form/a
 export const dynamic = "force-dynamic";
 
 import Nav from "@/components/portfolio/Nav";
+import { PortfolioBottomNav } from "./portfolio/_components/PortfolioBottomNav";
 import Hero from "@/components/portfolio/Hero";
 import Marquee from "@/components/portfolio/Marquee";
 import Gallery from "@/components/portfolio/Gallery";
@@ -158,14 +159,17 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Nav />
-      <Hero hero={content.hero} />
-      <Marquee />
-      <Gallery gallery={content.gallery} />
-      <BehindTheLens lens={content.lens} />
-      <Stories stories={content.stories} />
-      <Services services={content.services} />
-      <About about={content.about} />
-      <Contact contact={content.contact} />
+      <div className="pb-20">
+        <Hero hero={content.hero} />
+        <Marquee />
+        <Gallery gallery={content.gallery} />
+        <BehindTheLens lens={content.lens} />
+        <Stories stories={content.stories} />
+        <Services services={content.services} />
+        <About about={content.about} />
+        <Contact contact={content.contact} />
+      </div>
+      <PortfolioBottomNav />
     </main>
   );
 }

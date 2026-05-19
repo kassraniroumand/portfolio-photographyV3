@@ -12,7 +12,7 @@ const items = [
 const Marquee = () => {
   return (
     <div className="border-y border-border py-6 overflow-hidden">
-      <div className="flex animate-marquee whitespace-nowrap">
+      <div className="flex w-max animate-marquee whitespace-nowrap">
         {[...items, ...items, ...items].map((item, i) => (
           <span
             key={i}

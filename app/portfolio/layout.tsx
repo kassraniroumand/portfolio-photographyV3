@@ -5,7 +5,7 @@ import About from "@/components/portfolio/About";
 import Contact from "@/components/portfolio/Contact";
 import { getPortfolio } from "./_lib/portfolioData";
 import { getHomePage } from "../_lib/homePageData";
-import { PortfolioTabs } from "./_components/PortfolioTabs";
+import { PortfolioBottomNav } from "./_components/PortfolioBottomNav";
 
 export default async function PortfolioLayout({
   children,
@@ -56,10 +56,14 @@ export default async function PortfolioLayout({
         </section>
       )}
 
-      {children}
+      <div className="pb-20">
+        {children}
 
-      <About about={home.about} />
-      <Contact contact={home.contact} />
+        <About about={home.about} />
+        <Contact contact={home.contact} />
+      </div>
+
+      <PortfolioBottomNav />
     </main>
   );
 }
